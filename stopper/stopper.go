@@ -10,7 +10,7 @@ import (
 )
 
 type Stopper interface {
-	Stop(*sarama.ConsumerMessage)
+	Stop(*sarama.ConsumerMessage) error
 }
 
 type BashStopper struct {
@@ -42,7 +42,7 @@ func (bs BashStopper) Stop(msg *sarama.ConsumerMessage) error {
 		return errors.New("передан неверный формат данных")
 	}
 
-	if err := cmdData.Cmd.Wait(); err != nil {
+	if err := cmdData.Cmd.Process.Kill(); err != nil {
 		return err
 	}
 

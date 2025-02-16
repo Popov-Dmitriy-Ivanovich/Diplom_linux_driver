@@ -1,1 +1,0 @@
-while sleep 1; do date > testoviy2.txt; done 

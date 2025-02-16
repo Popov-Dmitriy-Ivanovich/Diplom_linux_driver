@@ -25,6 +25,7 @@ func (bcc *BashCommandConsumer) Setup(KafkaUrl[]string){
 	bcc.KafkaUrl = KafkaUrl
 	bcc.Store = datastorer.NewBashDataSorer()
 	bcc.Launch = launcher.NewBashLauncher(bcc.Store)
+	bcc.Stop = stopper.NewBashStopper(bcc.Store)
 }
 
 func (bcc *BashCommandConsumer) Serve() error {
@@ -46,6 +47,12 @@ func (bcc *BashCommandConsumer) Serve() error {
 	}
 	defer BashStatusProducer.Close()
 
+	stopBashConsumer, err := consumer.ConsumePartition("StopBashAction", 0, sarama.OffsetNewest)
+	if err != nil {
+		return err
+	}
+	defer stopBashConsumer.Close()
+
 	for {
 		select {
 		// (обработка входящего сообщения и отправка ответа в Kafka)
@@ -62,6 +69,22 @@ func (bcc *BashCommandConsumer) Serve() error {
 				execStatus.Value = sarama.StringEncoder(err.Error())
 			}
 			_,_, err = BashStatusProducer.SendMessage(execStatus)
+			if err != nil {
+				return err
+			}
+		case msg, ok := <-stopBashConsumer.Messages():
+			if !ok {
+				return errors.New("Connection closed")
+			}
+			stopStatus := &sarama.ProducerMessage{
+				Topic: "BashStatus",
+				Key: sarama.ByteEncoder(msg.Key),
+				Value: sarama.StringEncoder("Stoped"),
+			}
+			if err := bcc.Stop.Stop(msg); err != nil {
+				stopStatus.Value = sarama.StringEncoder(err.Error())
+			}
+			_,_, err = BashStatusProducer.SendMessage(stopStatus)
 			if err != nil {
 				return err
 			}
