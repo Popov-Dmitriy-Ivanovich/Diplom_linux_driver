@@ -2,7 +2,10 @@ module github.com/Popov-Dmitriy-Ivanovich/Diplom_linux_driver
 
 go 1.23.5
 
-require github.com/IBM/sarama v1.45.0
+require (
+	github.com/IBM/sarama v1.45.0
+	github.com/joho/godotenv v1.5.1
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

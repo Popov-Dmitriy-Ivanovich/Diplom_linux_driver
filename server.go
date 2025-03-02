@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"github.com/joho/godotenv"
 
 	"github.com/Popov-Dmitriy-Ivanovich/Diplom_linux_driver/consumer"
 )
@@ -8,7 +10,11 @@ import (
 
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 	bashConsumer := consumer.BashCommandConsumer{}
-	bashConsumer.Setup([]string{"localhost:9092"})
+	bashConsumer.Setup([]string{os.Getenv("KAFKA_URL")})
 	print(bashConsumer.Serve().Error())
 }

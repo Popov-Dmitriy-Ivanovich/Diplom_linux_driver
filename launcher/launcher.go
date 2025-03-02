@@ -1,6 +1,7 @@
 package launcher
 
 import (
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -42,9 +43,10 @@ func (bl BashLauncher) Launch(msg *sarama.ConsumerMessage) error {
 	cmd := exec.Command("/bin/bash", filename)
 	
 	if err := cmd.Start(); err != nil {
+		log.Printf("Command has NOT started started %v", err)
 		return err
 	}
-
+	log.Printf("Command started successfully")
 	bl.Store.Set(uint(ID),datastorer.BashCommandData{
 		FilePath: filename,
 		Cmd: cmd,

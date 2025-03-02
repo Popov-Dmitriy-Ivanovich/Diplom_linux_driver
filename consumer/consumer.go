@@ -2,6 +2,8 @@ package consumer
 
 import (
 	"errors"
+	"log"
+	"os"
 
 	"github.com/IBM/sarama"
 	"github.com/Popov-Dmitriy-Ivanovich/Diplom_linux_driver/datastorer"
@@ -41,7 +43,7 @@ func (bcc *BashCommandConsumer) Serve() error {
 	}
 	defer runBashConsumer.Close()
 
-	BashStatusProducer, err := sarama.NewSyncProducer([]string{"localhost:9092"},nil)
+	BashStatusProducer, err := sarama.NewSyncProducer([]string{os.Getenv("KAFKA_URL")},nil)
 	if err != nil {
 		return err
 	}
@@ -70,8 +72,10 @@ func (bcc *BashCommandConsumer) Serve() error {
 			}
 			_,_, err = BashStatusProducer.SendMessage(execStatus)
 			if err != nil {
+				log.Println("Could not notify start")
 				return err
 			}
+			log.Println("Start notification sent")
 		case msg, ok := <-stopBashConsumer.Messages():
 			if !ok {
 				return errors.New("Connection closed")
